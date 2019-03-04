@@ -26,6 +26,7 @@ module Impl : sig
 
   val constant : string -> string -> t
   val identity : string -> param list -> t
+  val with_raw_body : string -> param list -> body:string -> t
   val record_constructor : string -> param list -> t
   val record_accessor : string -> param list -> t
   val http_request : return:return -> http_verb -> string -> param list -> t

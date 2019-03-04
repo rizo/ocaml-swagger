@@ -32,6 +32,11 @@ val add_vals : Val.t list -> t -> t
 
 val find_submodule : string -> t -> t option
 
+val reference_module_path : reference_base:string
+                         -> reference_root:t
+                         -> string
+                         -> string list
+
 val reference_module : reference_base:string
                     -> reference_root:t
                     -> string

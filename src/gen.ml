@@ -162,6 +162,9 @@ let definition_module ?(path = [])
   let required = default [] schema.required in
   let properties = default [] schema.properties in
 
+  let type_name = (Mod.qualified_name root :: path) @ [name; "t"] in
+  let type_name = String.concat "." type_name in
+
   let create_param name type_ required_params =
     let n = Param.name name in
     if List.mem name required_params
@@ -179,6 +182,15 @@ let definition_module ?(path = [])
       [] in
 
   let alias_type () =
+    let type_info_val =
+      let body = Type_info.mk_type
+                   ~reference_base ~reference_root:root
+                   ~name:type_name schema in
+      let body = Type_info.to_string body in
+      Val.create
+        (Val.Sig.(pure "type_info" [positional "unit"] "t Depyt.t"))
+        (Val.Impl.(with_raw_body "type_info" [positional "()" "unit"] ~body))
+    in
     let param_type =
       Schema.kind_to_string
         (Schema.create ~reference_base ~reference_root:root schema) in
@@ -194,9 +206,20 @@ let definition_module ?(path = [])
       Val.create
         (Val.Sig.(pure "make" [positional param_type] "t"))
         (Val.Impl.(identity "make" [positional "t" "t"])) in
-    ([typ], [create]) in
+    ([typ], [create; type_info_val]) in
 
   let record_type () =
+    let type_info_val =
+      let properties = List.map (fun (n, v) -> (Param.name n, v)) properties in
+      let required = List.map (fun n -> Param.name n) required in
+      let body = Type_info.mk_record
+                   ~reference_base ~reference_root:root
+                   ~name:type_name ~required properties in
+      let body = Type_info.to_string body in
+      Val.create
+        (Val.Sig.(pure "type_info" [positional "unit"] "t Depyt.t"))
+        (Val.Impl.(with_raw_body "type_info" [positional "()" "unit"] ~body))
+    in
     let params = create_params properties in
     let sig_params, impl_params = params |> List.split in
     let create =
@@ -229,7 +252,7 @@ let definition_module ?(path = [])
           (field :: fields, value :: values))
         ([], [])
         properties in
-    let values = create :: List.rev values in
+    let values = create :: type_info_val :: List.rev values in
     let type_sig = Type.Sig.abstract "t" in
     let type_impl = Type.Impl.record "t" fields in
     let typ = Type.create type_sig type_impl in
@@ -238,7 +261,18 @@ let definition_module ?(path = [])
   let unspec_type () =
     let typ =
       Type.create (Type.Sig.unspecified "t") (Type.Impl.unspecified "t") in
-    ([typ], []) in
+    let type_info_val =
+      (* let required = List.map (fun n -> Param.name n) required in *)
+      (* let body = Type_info.mk_type *)
+      (*              ~reference_base ~reference_root:root *)
+      (*              ~name:"t" ~required schema in *)
+      (* let body = Type_info.to_string body in *)
+      let body = {|failwith "type_info for JSON type not implemented" |} in
+      Val.create
+        (Val.Sig.(pure "type_info" [positional "unit"] "t Depyt.t"))
+        (Val.Impl.(with_raw_body "type_info" [positional "()" "unit"] ~body))
+    in
+    ([typ], [type_info_val]) in
 
   let types, values =
     match schema.kind, schema.properties with
@@ -350,15 +384,23 @@ module Object = struct
     type value
     val value_of_yojson : Yojson.Safe.json -> (value, string) result
     val value_to_yojson : value -> Yojson.Safe.json
+
+    val type_info : unit -> value Depyt.t
   end
 
   module type S = sig
     type value
     type t = (string * value) list [@@deriving yojson]
+
+    val type_info : unit -> t Depyt.t
   end
 
   module Make (V : Value) : S with type value := V.value = struct
     type t = (string * V.value) list [@@deriving yojson]
+
+    let type_info () =
+      let value_typ = V.type_info () in
+      Depyt.(list (pair string (value_typ)))
 
     let to_yojson obj =
       `Assoc (List.map (fun (k, v) -> (k, V.value_to_yojson v)) obj)
@@ -375,10 +417,29 @@ module Object = struct
       | _ -> Error "invalid object"
   end
 
-  module Of_strings = Make (struct type value = string [@@deriving yojson] end)
-  module Of_floats  = Make (struct type value = float  [@@deriving yojson] end)
-  module Of_ints    = Make (struct type value = int    [@@deriving yojson] end)
-  module Of_bools   = Make (struct type value = bool   [@@deriving yojson] end)
+  module Of_strings = Make (struct
+    type value = string [@@deriving yojson]
+
+    let type_info () = Depyt.string
+  end)
+
+  module Of_floats  = Make (struct
+    type value = float  [@@deriving yojson]
+
+    let type_info () = Depyt.float
+  end)
+
+  module Of_ints = Make (struct
+    type value = int [@@deriving yojson]
+
+    let type_info () = Depyt.int
+  end)
+
+  module Of_bools = Make (struct
+    type value = bool [@@deriving yojson]
+
+    let type_info () = Depyt.bool
+  end)
 end
 |}
 

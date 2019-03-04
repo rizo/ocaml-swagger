@@ -107,7 +107,10 @@ let object_module_val ?(indent = 0) () =
 
 let object_module_impl ?(indent = 0) () =
   let pad = String.make indent ' ' in
-  "\n" ^ pad ^ "module Object = Object.Make (struct type value = t [@@deriving yojson] end)\n"
+  "\n" ^ pad ^ "module Object = Object.Make (struct" ^
+  pad ^ "  type value = t [@@deriving yojson]" ^
+  pad ^ "  let type_info () = type_info ()" ^
+  pad ^ "end)\n"
 
 let rec sig_to_string ?(indent = 0) m =
   let pad = String.make indent ' ' in

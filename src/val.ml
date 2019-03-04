@@ -121,6 +121,7 @@ module Impl = struct
     | Record_accessor
     | Identity
     | Constant of string
+    | Raw_body of string
     | Http_request of http_verb * return
     | Derived
 
@@ -167,6 +168,7 @@ module Impl = struct
   let identity = create Identity
   let constant name value =
     create (Constant value) name [positional "()" "unit"]
+  let with_raw_body name params ~body = create (Raw_body body) name params
   let http_request ~return verb = create (Http_request (verb, return))
 
   let param_name = function
@@ -408,6 +410,7 @@ module Impl = struct
     | Record_accessor -> sprintf "%st.%s" pad t.name
     | Identity -> sprintf "%st" pad
     | Constant v -> sprintf "%s\"%s\"" pad v
+    | Raw_body v -> sprintf "%s%s" pad v
     | Http_request (Get, return) -> http_get ~pad ~return t.params
     | Http_request (Put, return) -> http_put ~pad ~return t.params
     | Http_request (Post, return) -> http_post ~pad ~return t.params

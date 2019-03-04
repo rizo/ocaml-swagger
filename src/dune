@@ -11,4 +11,5 @@
 (library
  (name swagger)
  (public_name swagger)
- (libraries atdgen re.pcre yojson))
+ (libraries atdgen re.pcre yojson ocaml-migrate-parsetree)
+ (preprocess (pps ppx_tools_versioned.metaquot_406)))
