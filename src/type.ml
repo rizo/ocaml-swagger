@@ -4,9 +4,11 @@ open Util
 module Sig = struct
   type t =
     | Abstract of string * string option
+    | Alias of string * string * string option
     | Unspecified of string * string option
 
   let abstract ?descr name = Abstract (name, descr)
+  let alias ?descr name other = Alias (name, other, descr)
   let unspecified ?descr name = Unspecified (name, descr)
 
   let to_string ?(indent = 0) t =
@@ -18,6 +20,12 @@ module Sig = struct
           name, sprintf "%s(** %s *)\n" pad descr, ""
       | Abstract (name, None) ->
           name, "", ""
+      | Alias (name, other, Some descr) ->
+          let descr = format_comment descr in
+          let doc = sprintf "%s(** %s *)\n" pad descr in
+          name, doc, sprintf " = %s" other
+      | Alias (name, other, None) ->
+          name, "", sprintf " = %s" other
       | Unspecified (name, Some descr) ->
           let descr = format_comment descr in
           let doc = sprintf "%s(** %s *)\n" pad descr in
@@ -117,7 +125,7 @@ let create signature implementation = { signature; implementation }
 
 let name t =
   match t.signature with
-  | Sig.Abstract (n, _) | Sig.Unspecified (n, _) -> n
+  | Sig.Abstract (n, _) | Sig.Unspecified (n, _) | Sig.Alias (n, _, _) -> n
 
 let signature t =
   t.signature

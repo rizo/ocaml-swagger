@@ -200,7 +200,7 @@ let definition_module ?(path = [])
       | _ -> false in
     let typ =
       Type.create
-        (Type.Sig.abstract "t")
+        (Type.Sig.alias "t" param_type)
         (Type.Impl.alias "t" param_type ~int_or_string) in
     let create =
       Val.create

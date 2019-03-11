@@ -68,11 +68,11 @@ let mk_type ~name ~reference_base ~reference_root ?required
     match required with
     | Some required -> not (List.mem name required)
     | None -> false in
-  let name_exp = Exp.constant (Const.string name) in
+  (* let name_exp = Exp.constant (Const.string name) in *)
   if is_optional then
-    [%expr Depyt.named [%e name_exp] (Depyt.option [%e type'])]
+    [%expr Depyt.option [%e type']]
   else
-    [%expr Depyt.named [%e name_exp] [%e type']]
+    type'
 
 
 

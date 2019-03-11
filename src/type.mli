@@ -13,6 +13,8 @@ module Sig : sig
       The [descr] argument will be used to generate the documentation string,
       if provided. *)
 
+  val alias : ?descr:string -> string -> string -> t
+
   val unspecified : ?descr:string -> string -> t
 
   val to_string : ?indent:int -> t -> string
