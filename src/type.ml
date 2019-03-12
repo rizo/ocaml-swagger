@@ -82,11 +82,11 @@ module Impl = struct
     match t with
     | Unspecified name ->
       let type_ = sprintf "%stype %s = Yojson.Safe.json" pad name in
-      sprintf "%s [@@deriving yojson]\n" type_
+      sprintf "%s [@@deriving yojson { strict = false }]\n" type_
 
     | Alias {name; target; int_or_string = false} ->
       let type_ = sprintf "%stype %s = %s" pad name target in
-      sprintf "%s [@@deriving yojson]\n" type_
+      sprintf "%s [@@deriving yojson { strict = false }]\n" type_
 
     | Alias {name; target; int_or_string = true} ->
       (* Aliases for string types with "int-or-string" format, in addition to
@@ -98,7 +98,7 @@ module Impl = struct
       assert (target = "string");
 
       let type_ = sprintf "%stype %s = %s" pad name target in
-      sprintf "%s [@@deriving yojson]\n\n%s\n\n%s" type_
+      sprintf "%s [@@deriving yojson { strict = false }]\n\n%s\n\n%s" type_
         int_or_string_to_yojson
         int_or_string_of_yojson
 
@@ -113,7 +113,7 @@ module Impl = struct
           ""
           fields in
       let type_ = sprintf "%stype %s = {%s }" pad name s in
-      sprintf "%s [@@deriving yojson]\n" type_
+      sprintf "%s [@@deriving yojson { strict = false }]\n" type_
 end
 
 type t =

@@ -396,7 +396,7 @@ module Object = struct
   end
 
   module Make (V : Value) : S with type value := V.value = struct
-    type t = (string * V.value) list [@@deriving yojson]
+    type t = (string * V.value) list [@@deriving yojson { strict = false }]
 
     let type_info () =
       let value_typ = V.type_info () in
