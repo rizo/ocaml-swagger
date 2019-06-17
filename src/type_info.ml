@@ -1,12 +1,15 @@
 open Util
-open Migrate_parsetree
-open Ast_406
+open Migrate_parsetree.Ast_406
+module Ast_406 = Migrate_parsetree.Ast_406
 module Exp = Ast_helper.Exp
 module Const = Ast_helper.Const
 module Pat = Ast_helper.Pat
 module Ast = Asttypes
 
-module To_current = Convert(OCaml_406)(OCaml_current)
+module To_current =
+  Migrate_parsetree.Convert
+    (Migrate_parsetree.OCaml_406)
+    (Migrate_parsetree.OCaml_current)
 
 
 let lident name =

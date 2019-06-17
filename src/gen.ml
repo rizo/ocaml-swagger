@@ -382,8 +382,8 @@ let object_module = String.trim {|
 module Object = struct
   module type Value = sig
     type value
-    val value_of_yojson : Yojson.Safe.json -> (value, string) result
-    val value_to_yojson : value -> Yojson.Safe.json
+    val value_of_yojson : Yojson.Safe.t -> (value, string) result
+    val value_to_yojson : value -> Yojson.Safe.t
 
     val type_info : unit -> value Depyt.t
   end
@@ -396,7 +396,7 @@ module Object = struct
   end
 
   module Make (V : Value) : S with type value := V.value = struct
-    type t = (string * V.value) list [@@deriving yojson]
+    type t = (string * V.value) list [@@deriving yojson { strict = false }]
 
     let type_info () =
       let value_typ = V.type_info () in
