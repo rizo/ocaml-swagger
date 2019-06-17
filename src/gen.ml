@@ -405,7 +405,7 @@ module Object = struct
     let to_yojson obj =
       `Assoc (List.map (fun (k, v) -> (k, V.value_to_yojson v)) obj)
 
-    let of_yojson (obj : Yojson.Safe.json) : (t, string) result =
+    let of_yojson (obj : Yojson.Safe.t) : (t, string) result =
       let rec loop acc = function
         | [] -> Ok (List.rev acc)
         | (k, v) :: obj ->
